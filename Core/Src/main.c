@@ -32,6 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define ADC_BUF_LEN 512
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -41,12 +42,18 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 UART_HandleTypeDef huart3;
 
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
+uint16_t adcBuf[ADC_BUF_LEN];
+
+uint8_t ADC_FLAG;
+#define TRUE 1
+#define FALSE 0
 
 /* USER CODE END PV */
 
@@ -55,6 +62,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -72,9 +80,9 @@ static void MX_ADC1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  char MSG[35] = {'\0'};
-  char str[15] = {'\0'};
-
+  char msgbuf[512]= {'\0'};
+  int loop =0;
+  int adc_ready = 0;
 
   /* USER CODE END 1 */
 
@@ -98,26 +106,30 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  __IO uint16_t ADCValue=0;
 
-  HAL_ADC_Start(&hadc1);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuf, ADC_BUF_LEN);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  sprintf(MSG, "Hello!\r\n");
-      HAL_UART_Transmit(&huart3, (uint8_t*)MSG, sizeof(MSG), 100);
-      if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-              ADCValue = HAL_ADC_GetValue(&hadc1);
-              sprintf(str, "Reading: %d\r\n", ADCValue);
-      }
-      HAL_UART_Transmit(&huart3, (uint8_t*)str, sizeof(str), 100);
+	  ++loop;
 
-      HAL_Delay(1000);
+      if (ADC_FLAG==TRUE){
+        ADC_FLAG=FALSE;
+        ++adc_ready;
+
+        sprintf(msgbuf, "%d - %d: ADC1=%d, ADC2=%d, ADC3=%d\r\n", loop, adc_ready,
+  	    adcBuf[0], adcBuf[1], adcBuf[2]);
+        HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+      }
+
+
+      HAL_Delay(200);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -200,7 +212,7 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.Resolution = ADC_RESOLUTION_8B;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
@@ -208,8 +220,8 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 1;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
@@ -300,6 +312,22 @@ static void MX_USB_OTG_FS_PCD_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -351,6 +379,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+
+  ADC_FLAG=TRUE;
+}
+
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc) {
+  ADC_FLAG=FALSE;
+}
+
 
 /* USER CODE END 4 */
 
