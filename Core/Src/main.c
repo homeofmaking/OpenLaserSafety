@@ -22,7 +22,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
-
+#include "watertemp.h"
+#include "string.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,9 +53,9 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 /* USER CODE BEGIN PV */
 uint16_t adcBuf[ADC_BUF_LEN];
 
-uint8_t ADC_FLAG;
-#define TRUE 1
-#define FALSE 0
+bool inletTempOk;
+WaterInletData waterInletData;
+
 
 /* USER CODE END PV */
 
@@ -81,8 +83,9 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   char msgbuf[512]= {'\0'};
-  int loop =0;
-  int adc_ready = 0;
+  waterInletData.lowerBound = 10;
+  waterInletData.upperBound = 100;
+
 
   /* USER CODE END 1 */
 
@@ -111,25 +114,27 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuf, ADC_BUF_LEN);
+  HAL_Delay(1000);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  ++loop;
+      sprintf(msgbuf, "temperature %d\r\n", adcBuf[0]);
+      HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
 
-      if (ADC_FLAG==TRUE){
-        ADC_FLAG=FALSE;
-        ++adc_ready;
-
-        sprintf(msgbuf, "%d - %d: ADC1=%d, ADC2=%d, ADC3=%d\r\n", loop, adc_ready,
-  	    adcBuf[0], adcBuf[1], adcBuf[2]);
+      if (inletTempOk){
+        sprintf(msgbuf, "Inlet temperature ok\r\n");
+        HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+      } else {
+        sprintf(msgbuf, "Inlet temperature NOT ok\r\n");
         HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
       }
 
 
-      HAL_Delay(200);
+      HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -381,11 +386,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 
-  ADC_FLAG=TRUE;
-}
-
-void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc) {
-  ADC_FLAG=FALSE;
+  waterInletData.adcBuffer = &adcBuf;
+  inletTempOk=checkWaterInletTemperature(&waterInletData);
 }
 
 
