@@ -25,6 +25,7 @@
 #include "watertemp.h"
 #include "string.h"
 #include "stdbool.h"
+#include "config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,7 +35,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define ADC_BUF_LEN 512
+#define NUMBER_ADC_CHANNEL 2
+#define NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL 16
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,10 +54,13 @@ UART_HandleTypeDef huart3;
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
-uint16_t adcBuf[ADC_BUF_LEN];
+uint16_t adcBuf[NUMBER_ADC_CHANNEL * NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL] = {0};
+uint32_t conversionResult[NUMBER_ADC_CHANNEL];
 
-bool inletTempOk;
-WaterInletData waterInletData;
+
+bool isAdcWork;
+WaterData waterInletData;
+WaterData waterOutletData;
 
 
 /* USER CODE END PV */
@@ -67,7 +73,7 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
-
+uint16_t adc_dma_average(int);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -83,8 +89,10 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   char msgbuf[512]= {'\0'};
-  waterInletData.lowerBound = 10;
-  waterInletData.upperBound = 100;
+  waterInletData.lowerBound = TEMP1_LOWER;
+  waterInletData.upperBound = TEMP1_UPPER;
+  waterOutletData.lowerBound = TEMP1_LOWER;
+  waterOutletData.upperBound = TEMP1_UPPER;
 
 
   /* USER CODE END 1 */
@@ -113,8 +121,15 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuf, ADC_BUF_LEN);
-  HAL_Delay(1000);
+
+
+  sprintf(msgbuf, "Starting device.\r\n");
+  HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuf, NUMBER_ADC_CHANNEL * NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL) != HAL_OK) {
+  	  Error_Handler();
+    }
+
+  HAL_Delay(200);
 
   /* USER CODE END 2 */
 
@@ -122,10 +137,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      sprintf(msgbuf, "temperature %d\r\n", adcBuf[0]);
+      sprintf(msgbuf, "temperature %d - %d \r\n", adc_dma_average(0), adc_dma_average(1));
       HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
 
-      if (inletTempOk){
+      if (checkWaterTemperature(&waterInletData, adcBuf[0])){
         sprintf(msgbuf, "Inlet temperature ok\r\n");
         HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
       } else {
@@ -133,8 +148,18 @@ int main(void)
         HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
       }
 
+      if (ENABLE_TEMP2) {
+          if (checkWaterTemperature(&waterOutletData, adcBuf[1])){
+            sprintf(msgbuf, "Outlet temperature ok\r\n");
+            HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+          } else {
+            sprintf(msgbuf, "Outlet temperature NOT ok\r\n");
+            HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+          }
 
-      HAL_Delay(1000);
+      }
+
+      HAL_Delay(200);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -216,17 +241,17 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-  hadc1.Init.Resolution = ADC_RESOLUTION_8B;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DMAContinuousRequests = ENABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
@@ -235,7 +260,15 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_9;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -384,13 +417,24 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 
-  waterInletData.adcBuffer = &adcBuf;
-  inletTempOk=checkWaterInletTemperature(&waterInletData);
+
+uint16_t adc_dma_average(int channel)
+{
+	uint32_t adc_sum;
+	int i;
+
+	adc_sum = 0;
+	if(channel < NUMBER_ADC_CHANNEL )
+	{
+		for(i=0; i<NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL; i++)
+			adc_sum += adcBuf[channel+i*NUMBER_ADC_CHANNEL];
+	}
+	else
+		return 1;
+
+	return adc_sum/NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL;
 }
-
-
 /* USER CODE END 4 */
 
 /**

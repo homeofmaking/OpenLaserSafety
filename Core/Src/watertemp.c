@@ -1,25 +1,22 @@
 #include "watertemp.h"
-#include "main.h"
 #include "string.h"
 #include "stdbool.h"
+#include "config.h"
+
 
 
 UART_HandleTypeDef huart3;
 
-const uint16_t TEMP_SMOOTHING = 20000;
-const uint16_t TEMP_RECOVER_OFFSET = 3;
-
-
-bool checkWaterInletTemperature(WaterInletData *data) {
+bool checkWaterTemperature(WaterData *data, uint32_t value ) {
 
 	// lower limit
-    if ( (*data->adcBuffer)[0] < data->lowerBound ) {
+    if ( value > data->lowerBound ) {
     	if ( data->numBelowLimit < TEMP_SMOOTHING ) {
         	++(data->numBelowLimit);
         }
     } else {
         if (data->numBelowLimit > 0) {
-        	if ((*data->adcBuffer)[0] > (data->lowerBound + TEMP_RECOVER_OFFSET)) {
+        	if (value < (data->lowerBound + TEMP_RECOVER_OFFSET)) {
             --(data->numBelowLimit);
         	}
         } else {
@@ -31,13 +28,13 @@ bool checkWaterInletTemperature(WaterInletData *data) {
     }
 
 	// upper limit
-    if ( (*data->adcBuffer)[0] > data->upperBound ) {
+    if ( value < data->upperBound ) {
     	if ( data->numAboveLimit < TEMP_SMOOTHING ) {
         	++(data->numAboveLimit);
         }
     } else {
         if (data->numAboveLimit > 0) {
-        	if ((*data->adcBuffer)[0] < (data->upperBound - TEMP_RECOVER_OFFSET)) {
+        	if (value > (data->upperBound - TEMP_RECOVER_OFFSET)) {
             --(data->numAboveLimit);
         	}
         } else {

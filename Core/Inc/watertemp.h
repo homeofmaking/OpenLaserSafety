@@ -1,20 +1,18 @@
 #include "stdint.h"
 #include "stdio.h"
 #include "stdbool.h"
+#include "main.h"
 
 
-
-typedef struct WaterInletData
+typedef struct WaterData
 {
-  uint16_t (*adcBuffer)[512];
   uint16_t lowerBound;
   uint16_t upperBound;
   uint16_t numAboveLimit;
   uint16_t numBelowLimit;
   bool tooLow;
   bool tooHigh;
-} WaterInletData;
+} WaterData;
 
 
-bool checkWaterInletTemperature(WaterInletData*);
-
+bool checkWaterTemperature(WaterData*, uint32_t);
