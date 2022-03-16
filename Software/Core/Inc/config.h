@@ -15,4 +15,6 @@
 #define TEMP2_LOWER 1638  // 10°C
 #define TEMP2_UPPER 856  // 30°C
 
+#define minPulses 5 // minimum number of pulses from flow sensor required per loop
+
 #endif
