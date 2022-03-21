@@ -15,6 +15,10 @@
 #define TEMP2_LOWER 1638  // 10°C
 #define TEMP2_UPPER 856  // 30°C
 
-#define minPulses 5 // minimum number of pulses from flow sensor required per loop
+#define MIN_PULSES 5 // minimum number of pulses from flow sensor required per loop
+
+#define DOOR1_GPIO_TYPE GPIOF
+#define DOOR1_GPIO_PIN GPIO_PIN_4
+#define DOOR1_GPIO_DESIRED GPIO_PIN_SET
 
 #endif

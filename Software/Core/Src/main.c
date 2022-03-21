@@ -65,7 +65,7 @@ uint32_t pulseCounter = 0;
 bool isAdcWork;
 WaterData waterInletData;
 WaterData waterOutletData;
-CheckResult checkResult;
+Check check;
 
 
 /* USER CODE END PV */
@@ -135,6 +135,7 @@ int main(void)
   if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcBuf, NUMBER_ADC_CHANNEL * NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL) != HAL_OK) {
   	  Error_Handler();
     }
+  __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE );
   HAL_TIM_Base_Start_IT(&htim1);
   HAL_Delay(200);
 
@@ -144,43 +145,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      sprintf(msgbuf, "temperature %d - %d \r\n", adc_dma_average(0), adc_dma_average(1));
-      HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-
-      checkResult.temp1 = checkWaterTemperature(&waterInletData, adcBuf[0]);
-
-      // debug
-      if (checkWaterTemperature(&waterInletData, adcBuf[0])){
-        sprintf(msgbuf, "Inlet temperature ok\r\n");
-        HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-      } else {
-        sprintf(msgbuf, "Inlet temperature NOT ok\r\n");
-        HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-      }
-
+      check.results.temp1 = checkWaterTemperature(&waterInletData, adc_dma_average(0));
+      check.values.temp1 = adc_dma_average(0);
       if (ENABLE_TEMP2) {
-    	  checkResult.temp2 = checkWaterTemperature(&waterInletData, adcBuf[1]);
-    	  // debug
-          if (checkWaterTemperature(&waterOutletData, adcBuf[1])){
-            sprintf(msgbuf, "Outlet temperature ok\r\n");
-            HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-          } else {
-            sprintf(msgbuf, "Outlet temperature NOT ok\r\n");
-            HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-          }
-
+    	  check.results.temp2 = checkWaterTemperature(&waterInletData, adc_dma_average(1));
+    	  check.values.temp2 = adc_dma_average(1);
       }
-      if (__HAL_TIM_GET_COUNTER(&htim1) > pulseCounter + minPulses) {
-    	  checkResult.flow = true;
-    	  sprintf(msgbuf, "flow OK\r\n");
-    	  HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-      } else {
-    	  checkResult.flow = false;
-    	  sprintf(msgbuf, "flow NOT OK\r\n");
-    	  HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-      }
-      pulseCounter = __HAL_TIM_GET_COUNTER(&htim1);
+      check.results.flow = checkFlowCount(&htim1, &pulseCounter, &check);
 
+      check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
+      check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
+
+      serialPrintResult(&check.values, huart3);
 
       HAL_Delay(1000);
     /* USER CODE END WHILE */
@@ -449,6 +425,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
@@ -467,6 +444,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PF4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
   GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
@@ -514,7 +497,7 @@ uint16_t adc_dma_average(int channel)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   char msgbuf[512]= {'\0'};
-  sprintf(msgbuf, "Resetting pulscOunter\r\n");
+  sprintf(msgbuf, "Resetting pulseCounter\r\n");
   HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
   pulseCounter = 0;
 }

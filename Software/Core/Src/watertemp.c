@@ -7,7 +7,7 @@
 
 UART_HandleTypeDef huart3;
 
-bool checkWaterTemperature(WaterData *data, uint32_t value ) {
+bool checkWaterTemperature(WaterData *data, uint32_t value) {
 
 	// lower limit
     if ( value > data->lowerBound ) {
