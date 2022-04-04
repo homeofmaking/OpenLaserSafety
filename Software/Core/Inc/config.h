@@ -6,8 +6,8 @@
 #define TEMP_SMOOTHING 10
 #define TEMP_RECOVER_OFFSET 3
 
-/* 50kOhm @25°C + 150kOhm R1
- * 25°C -> 1023 ADC value
+/* 50kOhm @25°C + 10kOhm R1
+ * 25°C -> 3412 ADC value
  */
 #define TEMP1_LOWER 1638  // 10°C
 #define TEMP1_UPPER 856  // 30°C

@@ -65,7 +65,6 @@ uint32_t conversionResult[NUMBER_ADC_CHANNEL];
 uint32_t pulseCounter = 0;
 
 
-bool isAdcWork;
 WaterData waterInletData;
 WaterData waterOutletData;
 Check check;
@@ -101,8 +100,8 @@ int main(void)
   char msgbuf[512]= {'\0'};
   waterInletData.lowerBound = TEMP1_LOWER;
   waterInletData.upperBound = TEMP1_UPPER;
-  waterOutletData.lowerBound = TEMP1_LOWER;
-  waterOutletData.upperBound = TEMP1_UPPER;
+  waterOutletData.lowerBound = TEMP2_LOWER;
+  waterOutletData.upperBound = TEMP2_UPPER;
 
 
   /* USER CODE END 1 */
@@ -156,7 +155,7 @@ int main(void)
       check.results.temp1 = checkWaterTemperature(&waterInletData, adc_dma_average(0));
       check.values.temp1 = adc_dma_average(0);
       if (ENABLE_TEMP2) {
-    	  check.results.temp2 = checkWaterTemperature(&waterInletData, adc_dma_average(1));
+    	  check.results.temp2 = checkWaterTemperature(&waterOutletData, adc_dma_average(1));
     	  check.values.temp2 = adc_dma_average(1);
       }
       checkFlowCount(&htim1, &pulseCounter, &check);
@@ -166,8 +165,8 @@ int main(void)
 
       serialPrintResult(&check.values, huart3);
 
-    tlc59116_setLEDs(hi2c2, check.results);
-     HAL_Delay(1000);
+      tlc59116_setLEDs(hi2c2, check.results);
+      HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
