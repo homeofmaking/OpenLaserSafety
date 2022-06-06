@@ -27,6 +27,7 @@
 #include "string.h"
 #include "stdbool.h"
 #include "config.h"
+#include "tlc59116.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +51,8 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+I2C_HandleTypeDef hi2c2;
+
 TIM_HandleTypeDef htim1;
 
 UART_HandleTypeDef huart3;
@@ -62,7 +65,6 @@ uint32_t conversionResult[NUMBER_ADC_CHANNEL];
 uint32_t pulseCounter = 0;
 
 
-bool isAdcWork;
 WaterData waterInletData;
 WaterData waterOutletData;
 Check check;
@@ -78,6 +80,7 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 uint16_t adc_dma_average(int);
 /* USER CODE END PFP */
@@ -97,8 +100,8 @@ int main(void)
   char msgbuf[512]= {'\0'};
   waterInletData.lowerBound = TEMP1_LOWER;
   waterInletData.upperBound = TEMP1_UPPER;
-  waterOutletData.lowerBound = TEMP1_LOWER;
-  waterOutletData.upperBound = TEMP1_UPPER;
+  waterOutletData.lowerBound = TEMP2_LOWER;
+  waterOutletData.upperBound = TEMP2_UPPER;
 
 
   /* USER CODE END 1 */
@@ -126,6 +129,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -137,7 +141,10 @@ int main(void)
     }
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE );
   HAL_TIM_Base_Start_IT(&htim1);
+  tlc59116_init(hi2c2);
+
   HAL_Delay(200);
+
 
   /* USER CODE END 2 */
 
@@ -148,16 +155,17 @@ int main(void)
       check.results.temp1 = checkWaterTemperature(&waterInletData, adc_dma_average(0));
       check.values.temp1 = adc_dma_average(0);
       if (ENABLE_TEMP2) {
-    	  check.results.temp2 = checkWaterTemperature(&waterInletData, adc_dma_average(1));
+    	  check.results.temp2 = checkWaterTemperature(&waterOutletData, adc_dma_average(1));
     	  check.values.temp2 = adc_dma_average(1);
       }
-      check.results.flow = checkFlowCount(&htim1, &pulseCounter, &check);
+      checkFlowCount(&htim1, &pulseCounter, &check);
 
       check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
       check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
 
       serialPrintResult(&check.values, huart3);
 
+      tlc59116_setLEDs(hi2c2, check.results);
       HAL_Delay(1000);
     /* USER CODE END WHILE */
 
@@ -275,6 +283,52 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.Timing = 0x40B2252C;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_DISABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
 
 }
 
@@ -501,6 +555,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   HAL_UART_Transmit(&huart3, (uint8_t*)msgbuf, strlen(msgbuf), 100);
   pulseCounter = 0;
 }
+
 
 /* USER CODE END 4 */
 

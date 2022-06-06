@@ -4,9 +4,6 @@
 #include "config.h"
 
 
-
-UART_HandleTypeDef huart3;
-
 bool checkWaterTemperature(WaterData *data, uint32_t value) {
 
 	// lower limit
