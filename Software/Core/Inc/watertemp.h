@@ -4,7 +4,7 @@
 #include "main.h"
 
 
-typedef struct WaterData
+typedef struct AnalogData
 {
   uint16_t lowerBound;
   uint16_t upperBound;
@@ -12,8 +12,8 @@ typedef struct WaterData
   uint16_t numBelowLimit;
   bool tooLow;
   bool tooHigh;
-} WaterData;
+} AnalogData;
 
 
-bool checkWaterTemperature(WaterData*, uint32_t);
+bool checkAnalogData(AnalogData*, uint32_t);
 float inputToCelcius(uint32_t);

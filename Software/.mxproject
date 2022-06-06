@@ -9,17 +9,17 @@ CDefines=USE_HAL_DRIVER;STM32F103x6;USE_HAL_DRIVER;USE_HAL_DRIVER;
 [PreviousGenFiles]
 AdvancedFolderStructure=true
 HeaderFileListSize=3
-HeaderFiles#0=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Inc/stm32f1xx_it.h
-HeaderFiles#1=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Inc/stm32f1xx_hal_conf.h
-HeaderFiles#2=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Inc/main.h
+HeaderFiles#0=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Inc/stm32f1xx_it.h
+HeaderFiles#1=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Inc/stm32f1xx_hal_conf.h
+HeaderFiles#2=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Inc/main.h
 HeaderFolderListSize=1
-HeaderPath#0=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Inc
+HeaderPath#0=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Inc
 HeaderFiles=;
 SourceFileListSize=3
-SourceFiles#0=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Src/stm32f1xx_it.c
-SourceFiles#1=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Src/stm32f1xx_hal_msp.c
-SourceFiles#2=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Src/main.c
+SourceFiles#0=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Src/stm32f1xx_it.c
+SourceFiles#1=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Src/stm32f1xx_hal_msp.c
+SourceFiles#2=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Src/main.c
 SourceFolderListSize=1
-SourcePath#0=/home/cmaser/STM32CubeIDE/workspace_1.8.0/Test/Core/Src
+SourcePath#0=/home/cmaser/GIT/homeofmaking/OpenLaserSafety/Software/Core/Src
 SourceFiles=;
 

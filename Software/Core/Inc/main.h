@@ -69,6 +69,8 @@ void Error_Handler(void);
 #define DOOR1_GPIO_Port GPIOA
 #define DOOR1XXXX_Pin GPIO_PIN_12
 #define DOOR1XXXX_GPIO_Port GPIOA
+#define Exhaust_digital_Pin GPIO_PIN_4
+#define Exhaust_digital_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

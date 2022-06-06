@@ -34,6 +34,7 @@ void serialPrintResult(CheckValues *values, UART_HandleTypeDef huart) {
       sprintf(buffer + strlen(buffer), "Flow1: %d|", values->flow);
       sprintf(buffer + strlen(buffer), "Door1: %d|", values->door1);
       sprintf(buffer + strlen(buffer), "Door2: %d|", values->door2);
+      sprintf(buffer + strlen(buffer), "Exhaust: %d|", values->exhaust_digital);
       sprintf(buffer + strlen(buffer), "\n");
       HAL_UART_Transmit(&huart, (uint8_t*)buffer, strlen(buffer), 100);
 }

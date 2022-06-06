@@ -51,6 +51,8 @@ ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
+DMA_HandleTypeDef hdma_i2c1_rx;
+DMA_HandleTypeDef hdma_i2c1_tx;
 
 TIM_HandleTypeDef htim1;
 
@@ -65,8 +67,9 @@ uint32_t pulseCounter = 0;
 
 
 bool isAdcWork;
-WaterData waterInletData;
-WaterData waterOutletData;
+AnalogData waterInletData;
+AnalogData waterOutletData;
+AnalogData pressureData;
 Check check;
 
 /* USER CODE END PV */
@@ -103,7 +106,8 @@ int main(void)
   waterInletData.upperBound = TEMP1_UPPER;
   waterOutletData.lowerBound = TEMP1_LOWER;
   waterOutletData.upperBound = TEMP1_UPPER;
-
+  pressureData.lowerBound = PRESSURE_LOWER;
+  pressureData.upperBound = PRESSURE_UPPER;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -143,10 +147,10 @@ int main(void)
 	  HAL_UART_Transmit(&huart2, (uint8_t*)msgbuf, strlen(msgbuf), 100);
 
   }
-  /*
+
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE );
   HAL_TIM_Base_Start_IT(&htim1);
-  */
+
   tlc59116_init(&hi2c1, &huart2);
 
   HAL_Delay(200);
@@ -157,24 +161,27 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      check.results.temp1 = checkWaterTemperature(&waterInletData, inputToCelcius(adc_dma_average(2)));
-      check.values.temp1 = inputToCelcius(adc_dma_average(2));
+      check.results.temp1 = checkAnalogData(&waterInletData, inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP1)));
+      check.values.temp1 = inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP1));
       if (ENABLE_TEMP2) {
-    	  check.results.temp2 = checkWaterTemperature(&waterInletData, inputToCelcius(adc_dma_average(0)));
-    	  check.values.temp2 = inputToCelcius(adc_dma_average(0));
+    	  check.results.temp2 = checkAnalogData(&waterInletData, inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP2)));
+    	  check.values.temp2 = inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP2));
       }
-//      checkFlowCount(&htim1, &pulseCounter, &check);
+      checkFlowCount(&htim1, &pulseCounter, &check);
 
 
 
-      check.results.pressure = checkWaterTemperature(&waterInletData, adc_dma_average(1));
-      check.values.pressure = adc_dma_average(1);
+      check.results.pressure = checkAnalogData(&pressureData, adc_dma_average(ADC_CHANNEL_PRESSURE));
+      check.values.pressure = adc_dma_average(ADC_CHANNEL_PRESSURE);
 
       check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
       check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
 
       check.results.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
       check.values.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
+
+      check.results.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
+      check.values.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
 
       serialPrintResult(&check.values, huart2);
 
@@ -348,16 +355,18 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
-  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.Period = 200;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV2;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
   {
     Error_Handler();
   }
-  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_DISABLE;
-  sSlaveConfig.InputTrigger = TIM_TS_ITR2;
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+  sSlaveConfig.TriggerFilter = 0;
   if (HAL_TIM_SlaveConfigSynchro(&htim1, &sSlaveConfig) != HAL_OK)
   {
     Error_Handler();
@@ -420,6 +429,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
 }
 
@@ -453,6 +468,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : Exhaust_digital_Pin */
+  GPIO_InitStruct.Pin = Exhaust_digital_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(Exhaust_digital_GPIO_Port, &GPIO_InitStruct);
 
 }
 

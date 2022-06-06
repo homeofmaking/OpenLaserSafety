@@ -10,6 +10,7 @@ typedef struct CheckResults {
 	bool temp2;
 	bool flow;
 	bool pressure;
+	bool exhaust_digital;
 	bool door1;
 	bool door2;
 	bool all;
@@ -20,6 +21,7 @@ typedef struct CheckValues {
 	uint16_t temp2;
 	uint16_t flow;
 	uint16_t pressure;
+	bool exhaust_digital;
 	bool door1;
 	bool door2;
 } CheckValues;
