@@ -142,7 +142,7 @@ int main(void)
     }
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_UPDATE );
   HAL_TIM_Base_Start_IT(&htim1);
-  tlc59116_init(hi2c2);
+  tlc59116_init(hi2c2, &huart1);
 
   HAL_Delay(200);
 
