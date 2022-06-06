@@ -1,3 +1,7 @@
+#ifndef __CHECK_H__
+#define __CHECK_H__
+
+
 #include "stdbool.h"
 #include "main.h"
 
@@ -5,6 +9,7 @@ typedef struct CheckResults {
 	bool temp1;
 	bool temp2;
 	bool flow;
+	bool pressure;
 	bool door1;
 	bool door2;
 	bool all;
@@ -14,6 +19,7 @@ typedef struct CheckValues {
 	uint16_t temp1;
 	uint16_t temp2;
 	uint16_t flow;
+	uint16_t pressure;
 	bool door1;
 	bool door2;
 } CheckValues;
@@ -31,3 +37,5 @@ void checkFlowCount(TIM_HandleTypeDef*, uint32_t*, Check*);
 bool checkIOPin(GPIO_TypeDef*, uint16_t, GPIO_PinState);
 
 void overallStatus(CheckResults*);
+
+#endif

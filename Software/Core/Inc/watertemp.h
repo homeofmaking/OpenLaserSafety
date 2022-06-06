@@ -16,3 +16,4 @@ typedef struct WaterData
 
 
 bool checkWaterTemperature(WaterData*, uint32_t);
+float inputToCelcius(uint32_t);
