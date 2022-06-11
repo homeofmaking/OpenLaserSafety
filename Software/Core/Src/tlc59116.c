@@ -40,13 +40,14 @@ void tlc59116_init(I2C_HandleTypeDef *hi2c, UART_HandleTypeDef *huart) {
 			0x00, // Register 1B /  All Call I2C bus address
 			0xFF, // Register 1C /  IREF configuration
 		};
+	// HAL_I2C_Master_Transmit(hi2c, TLC59116_ADDRESS<<1, aTxBuffer, sizeof(aTxBuffer), 100);
+	 while (HAL_I2C_Master_Transmit(hi2c, TLC59116_ADDRESS, aTxBuffer, sizeof(aTxBuffer), 100) != HAL_OK) {
+	      char msgbuf[512]= {'\0'};
+	      sprintf(msgbuf, "Waiting for I2C transmit\r\n");
+	      HAL_UART_Transmit(huart, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+	      HAL_Delay(200);
 
-	/* while (HAL_I2C_Master_Transmit(hi2c, TLC59116_ADDRESS, aTxBuffer, sizeof(aTxBuffer), 1000) == HAL_BUSY) {
-		char msgbuf[512]= {'\0'};
-		sprintf(msgbuf, "Waiting for I2C transmit\r\n");
-		HAL_UART_Transmit(huart, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-		HAL_Delay(200);
-	} */
+	  }
 	HAL_I2C_Master_Transmit(hi2c, TLC59116_ADDRESS, aTxBuffer, sizeof(aTxBuffer), 1000);
 }
 
