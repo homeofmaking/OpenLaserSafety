@@ -1,0 +1,2 @@
+../Core/Src/watertemp.c:11:6:checkAnalogData	0	static
+../Core/Src/watertemp.c:60:7:inputToCelcius	16	static

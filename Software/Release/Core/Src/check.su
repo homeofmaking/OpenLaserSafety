@@ -1,0 +1,4 @@
+../Core/Src/check.c:8:6:checkFlowCount	8	static
+../Core/Src/check.c:20:6:checkIOPin	8	static
+../Core/Src/check.c:27:6:serialPrintResult	520	static
+../Core/Src/check.c:42:6:overallStatus	0	static

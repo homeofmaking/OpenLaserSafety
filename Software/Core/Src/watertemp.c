@@ -71,9 +71,10 @@ float inputToCelcius(uint32_t data) {
 
 	Vout = (float)(data)/4095 * 3.3;
 	R_NTC = (Vout * R_10k) /(Vsupply - Vout);  //calculating the resistance of the thermistor
-	//Temp_K = (T0*B_param)/(T0*log(R_NTC/R_10k)+B_param); //Temperature in Kelvin
-	Temp_K =  1 / ((1 / T0) + ((log(R_NTC / R_25)) / B_param));
+	Temp_K = (T0*B_param)/(T0*log(R_NTC/R_25)+B_param); //Temperature in Kelvin
+	//Temp_K =  1 / ((1 / T0) + ((log(R_NTC / R_25)) / B_param));
 
 	Temp_C = Temp_K - 273.15; //converting into Celsius
 	return Temp_C;
 }
+

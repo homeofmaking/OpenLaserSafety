@@ -1,0 +1,2 @@
+../Core/Src/tlc59116.c:8:6:tlc59116_init	576	static
+../Core/Src/tlc59116.c:52:6:tlc59116_setLEDs	48	static
