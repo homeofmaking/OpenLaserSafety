@@ -8,6 +8,7 @@
 void checkFlowCount(TIM_HandleTypeDef *htim, uint32_t *pulseCounter, Check *check) {
 	uint32_t previous = *pulseCounter;
     *pulseCounter = __HAL_TIM_GET_COUNTER(htim);
+
     uint32_t measurement = *pulseCounter - previous;
     check->values.flow = measurement;
 
@@ -25,7 +26,7 @@ bool checkIOPin(GPIO_TypeDef *type, uint16_t pin, GPIO_PinState desired){
 }
 
 void serialPrintResult(CheckValues *values, UART_HandleTypeDef huart) {
-	  char buffer[2048]= {'\0'};
+	  char buffer[60]= {'\0'};
 	  sprintf(buffer, "Temp1: %d|", values->temp1);
       if (ENABLE_TEMP2) {
     	  sprintf(buffer + strlen(buffer), "Temp2: %d|", values->temp2);
@@ -45,10 +46,17 @@ void serialPrintResult(CheckValues *values, UART_HandleTypeDef huart) {
 
 }
 
-void overallStatus(CheckResults *data){
-	data->all = data->door1 && data->door1 && data->flow && data->temp1;
+void overallStatus(Check* data){
+	bool all;
+	all = data->results.door1 && data->results.door1 && data->results.flow && data->results.temp1;
     if (ENABLE_TEMP2) {
-    	data->all = data->all && data->temp2;
+    	all = all && data->results.temp2;
+    }
+    if (all) {
+    	HAL_GPIO_WritePin(MASTER_OUT_GPIO_Port, MASTER_OUT_Pin, GPIO_PIN_SET);
+    }
+    else {
+    	HAL_GPIO_WritePin(MASTER_OUT_GPIO_Port, MASTER_OUT_Pin, GPIO_PIN_RESET);
     }
 }
 
