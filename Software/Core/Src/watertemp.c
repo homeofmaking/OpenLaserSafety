@@ -59,17 +59,17 @@ bool checkAnalogData(AnalogData *data, uint32_t value) {
 
 float inputToCelcius(uint32_t data) {
 
-	float Vsupply = 3.30; //power supply voltage (3.3 V rail) -STM32 ADC pin is NOT 5 V tolerant
+	float Vsupply = 3.28; //power supply voltage (3.3 V rail) -STM32 ADC pin is NOT 5 V tolerant
 	float Vout; //Voltage divider output
 	float R_NTC; //NTC thermistor resistance in Ohms
-	float R_10k = 10000; //10k resistor measured resistance in Ohms (other element in the voltage divider)
+	float R_10k = 11000; //10k resistor measured resistance in Ohms (other element in the voltage divider)
 	float R_25 = 50000;
 	float B_param = 3950; //B-coefficient of the thermistor
 	float T0 = 298.15; //25°C in Kelvin
 	float Temp_K; //Temperature measured by the thermistor (Kelvin)
 	float Temp_C; //Temperature measured by the thermistor (Celsius)
 
-	Vout = (float)(data)/4095 * 3.3;
+	Vout = (float)(data)/4096 * Vsupply;
 	R_NTC = (Vout * R_10k) /(Vsupply - Vout);  //calculating the resistance of the thermistor
 	Temp_K = (T0*B_param)/(T0*log(R_NTC/R_25)+B_param); //Temperature in Kelvin
 	//Temp_K =  1 / ((1 / T0) + ((log(R_NTC / R_25)) / B_param));

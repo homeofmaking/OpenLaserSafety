@@ -25,18 +25,24 @@ bool checkIOPin(GPIO_TypeDef *type, uint16_t pin, GPIO_PinState desired){
 }
 
 void serialPrintResult(CheckValues *values, UART_HandleTypeDef huart) {
-	  char buffer[512]= {'\0'};
+	  char buffer[2048]= {'\0'};
 	  sprintf(buffer, "Temp1: %d|", values->temp1);
       if (ENABLE_TEMP2) {
     	  sprintf(buffer + strlen(buffer), "Temp2: %d|", values->temp2);
       }
       sprintf(buffer + strlen(buffer), "Pressure: %d|", values->pressure);
-      sprintf(buffer + strlen(buffer), "Flow1: %d|", values->flow);
+      HAL_UART_Transmit(&huart, (uint8_t*)buffer, strlen(buffer), 100);
+
+      sprintf(buffer, "Flow1: %d|", values->flow);
       sprintf(buffer + strlen(buffer), "Door1: %d|", values->door1);
       sprintf(buffer + strlen(buffer), "Door2: %d|", values->door2);
-      sprintf(buffer + strlen(buffer), "Exhaust: %d|", values->exhaust_digital);
-      sprintf(buffer + strlen(buffer), "\r\n");
       HAL_UART_Transmit(&huart, (uint8_t*)buffer, strlen(buffer), 100);
+
+      sprintf(buffer, "Exhaust: %d|", values->exhaust_digital);
+      HAL_UART_Transmit(&huart, (uint8_t*)buffer, strlen(buffer), 100);
+      sprintf(buffer, "\r\n");
+      HAL_UART_Transmit(&huart, (uint8_t*)buffer, strlen(buffer), 100);
+
 }
 
 void overallStatus(CheckResults *data){

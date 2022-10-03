@@ -169,39 +169,34 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      //check.results.temp1 = checkAnalogData(&waterInletData, inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP1)));
-      //check.values.temp1 = inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP1));
-	  sprintf(msgbuf,"ch0 val = %d,", ADC_DMA_AVERAGE(0));
-	  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-	  sprintf(msgbuf,"ch1 val = %d,", ADC_DMA_AVERAGE(1));
-	  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-	  sprintf(msgbuf,"ch2 val = %d \r\n", ADC_DMA_AVERAGE(2));
-	  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+	  HAL_ADC_Start(&hadc);
+	  HAL_Delay(10);
 
-
-     /* if (ENABLE_TEMP2) {
-    	  check.results.temp2 = checkAnalogData(&waterInletData, inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP2)));
-    	  check.values.temp2 = inputToCelcius(adc_dma_average(ADC_CHANNEL_TEMP2));
+      check.results.temp1 = checkAnalogData(&waterInletData, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1)));
+      check.values.temp1 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1));
+	  if (ENABLE_TEMP2) {
+    	  check.results.temp2 = checkAnalogData(&waterInletData, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2)));
+    	  check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2));
       }
       else {
     	  check.results.temp2 = 0;
     	  check.values.temp2 = 0;
       }
-      checkFlowCount(&htim1, &pulseCounter, &check);
+      // checkFlowCount(&htim1, &pulseCounter, &check);
 
-      check.results.pressure = checkAnalogData(&pressureData, adc_dma_average(ADC_CHANNEL_PRESSURE));
-      check.values.pressure = adc_dma_average(ADC_CHANNEL_PRESSURE);
+      // check.results.pressure = checkAnalogData(&pressureData, adc_dma_average(ADC_CHANNEL_PRESSURE));
+      // check.values.pressure = adc_dma_average(ADC_CHANNEL_PRESSURE);
 
-      check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
-      check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
+      //check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
+      //check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
 
-      check.results.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
-      check.values.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
+      //check.results.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
+      //check.values.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
 
       check.results.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
       check.values.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
-      */
-      //serialPrintResult(&check.values, huart1);
+
+      serialPrintResult(&check.values, huart1);
 
       //tlc59116_setLEDs(hi2c2, check.results);
       HAL_Delay(1000);
@@ -280,18 +275,18 @@ static void MX_ADC_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc.Instance = ADC1;
-  hadc.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc.Init.Resolution = ADC_RESOLUTION_12B;
   hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
-  hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc.Init.LowPowerAutoWait = DISABLE;
   hadc.Init.LowPowerAutoPowerOff = DISABLE;
   hadc.Init.ContinuousConvMode = ENABLE;
   hadc.Init.DiscontinuousConvMode = DISABLE;
   hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc.Init.DMAContinuousRequests = DISABLE;
+  hadc.Init.DMAContinuousRequests = ENABLE;
   hadc.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   if (HAL_ADC_Init(&hadc) != HAL_OK)
   {
@@ -324,7 +319,6 @@ static void MX_ADC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC_Init 2 */
-
   /* USER CODE END ADC_Init 2 */
 
 }
