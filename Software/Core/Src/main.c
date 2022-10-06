@@ -114,10 +114,16 @@ int main(void)
   char msgbuf[512]= {'\0'};
   waterInletData.lowerBound = TEMP1_LOWER;
   waterInletData.upperBound = TEMP1_UPPER;
+  waterInletData.numAboveLimit = 5;
+  waterInletData.numBelowLimit = 5;
   waterOutletData.lowerBound = TEMP1_LOWER;
   waterOutletData.upperBound = TEMP1_UPPER;
+  waterOutletData.numAboveLimit = 5;
+  waterOutletData.numBelowLimit = 5;
   pressureData.lowerBound = PRESSURE_LOWER;
   pressureData.upperBound = PRESSURE_UPPER;
+  pressureData.numAboveLimit = 5;
+  pressureData.numBelowLimit = 5;
 
   /* USER CODE END 1 */
 
@@ -161,7 +167,7 @@ int main(void)
 
   tlc59116_init(&hi2c2, &huart1);
 
-  HAL_Delay(200);
+  HAL_Delay(2000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -198,7 +204,7 @@ int main(void)
       serialPrintResult(&check.values, huart1);
 
       tlc59116_setLEDs(hi2c2, check.results);
-      overallStatus(&check);
+      overallStatus(&check.results);
       HAL_Delay(1000);
 
     /* USER CODE END WHILE */

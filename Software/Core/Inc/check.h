@@ -38,6 +38,6 @@ void checkFlowCount(TIM_HandleTypeDef*, uint32_t*, Check*);
 
 bool checkIOPin(GPIO_TypeDef*, uint16_t, GPIO_PinState);
 
-void overallStatus(Check*);
+void overallStatus(CheckResults*);
 
 #endif
