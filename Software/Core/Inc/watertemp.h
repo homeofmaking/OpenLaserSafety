@@ -15,5 +15,5 @@ typedef struct AnalogData
 } AnalogData;
 
 
-bool checkAnalogData(AnalogData*, uint32_t);
+bool checkAnalogData(AnalogData*, uint32_t, uint16_t);
 float inputToCelcius(uint32_t);

@@ -8,7 +8,7 @@
 
 UART_HandleTypeDef huart3;
 
-bool checkAnalogData(AnalogData *data, uint32_t value) {
+bool checkAnalogData(AnalogData *data, uint32_t value, uint16_t recoverOffset) {
 	// lower limit
     if ( value < data->lowerBound ) {
     	if ( data->numBelowLimit < TEMP_SMOOTHING ) {
@@ -16,7 +16,7 @@ bool checkAnalogData(AnalogData *data, uint32_t value) {
         }
     } else { // current value not to low
         if (data->numBelowLimit > 0) {
-        	if (value > (data->lowerBound + TEMP_RECOVER_OFFSET)) {
+        	if (value > (data->lowerBound + recoverOffset)) {
             --(data->numBelowLimit);
         	}
         } else {
@@ -34,7 +34,7 @@ bool checkAnalogData(AnalogData *data, uint32_t value) {
         }
     } else {
         if (data->numAboveLimit > 0) {
-        	if (value < (data->upperBound - TEMP_RECOVER_OFFSET)) {
+        	if (value < (data->upperBound - recoverOffset)) {
             --(data->numAboveLimit);
         	}
         } else {

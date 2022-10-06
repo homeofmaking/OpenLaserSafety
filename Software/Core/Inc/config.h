@@ -4,22 +4,21 @@
 
 #define ENABLE_TEMP2 true
 #define TEMP_SMOOTHING 5
-#define TEMP_RECOVER_OFFSET 3
 
 /* 50kOhm @25°C + 10kOhm R1
  * TEMPERATURE VS RESISTANCE TABLE
  * Resistance         50k Ohms at 25deg. C
- * B Value            3950K at 25/50 deg. C
+ * B Value            3950Kelvin at 25/50 deg. C
  * Temp. Range:－40-＋150℃
- * 0°C -> 3865 ADC value
- * 25°C -> 3412 ADC value
- * 30°C -> 3279
  */
 #define TEMP1_LOWER 10  // °C
 #define TEMP1_UPPER 30  // °C
+#define TEMP1_RECOVER_OFFSET 3 // °C
 
 #define TEMP2_LOWER 10  // °C
 #define TEMP2_UPPER 30  // °C
+#define TEMP2_RECOVER_OFFSET 3
+
 /*
  * Pressure sensor open value: 2.50 V raw -> 1.7V after divider -> reading 2064
  * Upper limit 4.7 V:  raw -> 3.2 V after divider -> reading 4001
@@ -27,7 +26,7 @@
  */
 #define PRESSURE_UPPER 4001 // 4.99 V
 #define PRESSURE_LOWER 2550  // 3.00 V
-//#define PRESSURE_LOWER 2000
+#define PRESSURE_RECOVER_OFFSET 100  // ~ 0.08 V
 
 #define MIN_PULSES 5 // minimum number of pulses from flow sensor required per loop
 

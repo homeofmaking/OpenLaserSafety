@@ -80,8 +80,8 @@ uint32_t adcBuf[3];
 uint32_t conversionResult[NUMBER_ADC_CHANNEL];
 uint32_t pulseCounter = 0;
 
-AnalogData waterInletData;
-AnalogData waterOutletData;
+AnalogData temp1Data;
+AnalogData temp2Data;
 AnalogData pressureData;
 Check check;
 
@@ -112,14 +112,15 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   char msgbuf[512]= {'\0'};
-  waterInletData.lowerBound = TEMP1_LOWER;
-  waterInletData.upperBound = TEMP1_UPPER;
-  waterInletData.numAboveLimit = 5;
-  waterInletData.numBelowLimit = 5;
-  waterOutletData.lowerBound = TEMP1_LOWER;
-  waterOutletData.upperBound = TEMP1_UPPER;
-  waterOutletData.numAboveLimit = 5;
-  waterOutletData.numBelowLimit = 5;
+
+  temp1Data.lowerBound = TEMP1_LOWER;
+  temp1Data.upperBound = TEMP1_UPPER;
+  temp1Data.numAboveLimit = 5;
+  temp1Data.numBelowLimit = 5;
+  temp2Data.lowerBound = TEMP1_LOWER;
+  temp2Data.upperBound = TEMP1_UPPER;
+  temp2Data.numAboveLimit = 5;
+  temp2Data.numBelowLimit = 5;
   pressureData.lowerBound = PRESSURE_LOWER;
   pressureData.upperBound = PRESSURE_UPPER;
   pressureData.numAboveLimit = 5;
@@ -177,10 +178,10 @@ int main(void)
 	  HAL_ADC_Start(&hadc);
 	  HAL_Delay(10);
 
-      check.results.temp1 = checkAnalogData(&waterInletData, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1)));
+      check.results.temp1 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1)), TEMP1_RECOVER_OFFSET);
       check.values.temp1 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1));
 	  if (ENABLE_TEMP2) {
-    	  check.results.temp2 = checkAnalogData(&waterInletData, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2)));
+    	  check.results.temp2 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2)), TEMP2_RECOVER_OFFSET);
     	  check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2));
       }
       else {
@@ -189,7 +190,7 @@ int main(void)
       }
       checkFlowCount(&htim1, &pulseCounter, &check);
 
-      check.results.pressure = checkAnalogData(&pressureData, ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE));
+      check.results.pressure = checkAnalogData(&pressureData, ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE), PRESSURE_RECOVER_OFFSET);
       check.values.pressure = ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE);
 
       check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
