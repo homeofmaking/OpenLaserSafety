@@ -9,8 +9,6 @@
 UART_HandleTypeDef huart3;
 
 bool checkAnalogData(AnalogData *data, uint32_t value) {
-	char buffer[512]= {'\0'};
-
 	// lower limit
     if ( value < data->lowerBound ) {
     	if ( data->numBelowLimit < TEMP_SMOOTHING ) {

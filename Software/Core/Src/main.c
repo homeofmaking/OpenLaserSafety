@@ -319,6 +319,22 @@ static void MX_ADC_Init(void)
 
   /** Configure for the selected ADC regular channel to be converted.
   */
+  sConfig.Channel = ADC_CHANNEL_2;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_3;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
   sConfig.Channel = ADC_CHANNEL_6;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
@@ -494,6 +510,20 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MASTER_DO_GPIO_Port, MASTER_DO_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : DOOR2_Pin FIREALARM_Pin SPARE_IO1_Pin EXHAUST_Pin
+                           DOOR1_Pin */
+  GPIO_InitStruct.Pin = DOOR2_Pin|FIREALARM_Pin|SPARE_IO1_Pin|EXHAUST_Pin
+                          |DOOR1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SPARE_IO2_Pin EXT_UNLOCK_Pin SPARE_IO3_Pin SPARE_IO4_Pin */
+  GPIO_InitStruct.Pin = SPARE_IO2_Pin|EXT_UNLOCK_Pin|SPARE_IO3_Pin|SPARE_IO4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : MASTER_DO_Pin */
   GPIO_InitStruct.Pin = MASTER_DO_Pin;
