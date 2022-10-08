@@ -51,20 +51,21 @@ void tlc59116_init(I2C_HandleTypeDef *hi2c,UART_HandleTypeDef *huart) {
 
 void tlc59116_setLEDs(I2C_HandleTypeDef hi2c, CheckResults data) {
 
+	bool doors = data.door1 && data.door2;
 	uint8_t aTXBuffer[] = {
 			TLC59116_PWM0_AUTOINCR,
-			data.pressure * 255,
-			!data.pressure * 255,
-			//data.door1 * 255,
-			//!data.door1 * 255,
-			data.flow * 255,
-			!data.flow * 255,
+			doors * 255,
+			!doors * 255,
 			data.temp1 * 255,
 			!data.temp1 * 255,
-			data.temp2 * 255,
-			!data.temp2 * 255,
-			0,
-			0,
+			data.flow * 255,
+			!data.flow * 255,
+			data.exhaust_digital * 255,
+			!data.exhaust_digital * 255,
+			data.flow * 255,
+			!data.flow * 255,
+			data.pressure * 255,
+			!data.pressure * 255,
 			0,
 			0,
 			0,
