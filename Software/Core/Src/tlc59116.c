@@ -39,7 +39,6 @@ void tlc59116_init(I2C_HandleTypeDef *hi2c,UART_HandleTypeDef *huart) {
 			0x00, // Register 1B /  All Call I2C bus address
 			0xFF, // Register 1C /  IREF configuration
 		};
-	// HAL_I2C_Master_Transmit(&hi2c, TLC59116_ADDRESS<<1, aTxBuffer, sizeof(aTxBuffer), 100);
 	while (HAL_I2C_Master_Transmit(hi2c, TLC59116_ADDRESS, aTxBuffer, sizeof(aTxBuffer), 100) != HAL_OK) {
 		  char msgbuf[512]= {'\0'};
 		  sprintf(msgbuf, "Waiting for I2C transmit\r\n");
@@ -62,8 +61,6 @@ void tlc59116_setLEDs(I2C_HandleTypeDef hi2c, CheckResults data) {
 			!data.flow * 255,
 			data.exhaust_digital * 255,
 			!data.exhaust_digital * 255,
-			data.flow * 255,
-			!data.flow * 255,
 			data.pressure * 255,
 			!data.pressure * 255,
 			0,

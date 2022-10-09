@@ -6,17 +6,18 @@
 
 void checkFlowCount(TIM_HandleTypeDef *htim, uint32_t *pulseCounter, Check *check)
 {
+
   uint32_t previous = *pulseCounter;
   *pulseCounter = __HAL_TIM_GET_COUNTER(htim);
 
   uint32_t measurement = *pulseCounter - previous;
   check->values.flow = measurement;
 
-  if (measurement > MIN_PULSES)
-  {
+  if (measurement > MIN_PULSES) {
     check->results.flow = true;
+  } else {
+    check->results.flow = false;
   }
-  check->results.flow = false;
 }
 
 bool checkIOPin(GPIO_TypeDef *type, uint16_t pin, GPIO_PinState desired)
@@ -50,7 +51,7 @@ void serialPrintResult(CheckValues *values, UART_HandleTypeDef huart)
   HAL_UART_Transmit(&huart, (uint8_t *)buffer, strlen(buffer), 100);
 }
 
-void overallStatus(CheckResults *data)
+bool overallStatus(CheckResults *data)
 {
   bool all;
   all = data->door1 &&
@@ -71,4 +72,5 @@ void overallStatus(CheckResults *data)
   {
     HAL_GPIO_WritePin(MASTER_OUT_GPIO_Port, MASTER_OUT_Pin, GPIO_PIN_RESET);
   }
+  return all;
 }

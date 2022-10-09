@@ -167,8 +167,9 @@ int main(void)
   MX_I2C2_Init();
 
   tlc59116_init(&hi2c2, &huart1);
+  tlc59116_setLEDs(hi2c2, check.results);
 
-  HAL_Delay(2000);
+  HAL_Delay(5000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -202,10 +203,15 @@ int main(void)
       check.results.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
       check.values.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
 
-      serialPrintResult(&check.values, huart1);
+
+      check.results.all = overallStatus(&check.results);
+      sprintf(msgbuf, "ALL %d\r\n", check.values.all);
+      HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
 
       tlc59116_setLEDs(hi2c2, check.results);
-      overallStatus(&check.results);
+
+      serialPrintResult(&check.values, huart1);
+
       HAL_Delay(1000);
 
     /* USER CODE END WHILE */
