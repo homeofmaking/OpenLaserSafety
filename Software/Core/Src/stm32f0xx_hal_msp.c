@@ -102,7 +102,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA3     ------> ADC_IN3
     PA6     ------> ADC_IN6
     */
-    GPIO_InitStruct.Pin = WATERTEMP2_Pin|PRESSURE_Pin|ADC_SPARE1_Pin|ADC_SPARE2_Pin
+    GPIO_InitStruct.Pin = WATERTEMPOUTPin|PRESSURE_Pin|ADC_SPARE1_Pin|ADC_SPARE2_Pin
                           |GPIO_PIN_6;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -155,7 +155,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PA3     ------> ADC_IN3
     PA6     ------> ADC_IN6
     */
-    HAL_GPIO_DeInit(GPIOA, WATERTEMP2_Pin|PRESSURE_Pin|ADC_SPARE1_Pin|ADC_SPARE2_Pin
+    HAL_GPIO_DeInit(GPIOA, WATERTEMPOUTPin|PRESSURE_Pin|ADC_SPARE1_Pin|ADC_SPARE2_Pin
                           |GPIO_PIN_6);
 
     /* ADC1 DMA DeInit */

@@ -2,7 +2,7 @@
 #define __CONFIG_H__
 #include "stdbool.h"
 
-#define ENABLE_TEMP2 false
+#define ENABLETEMPOUT false
 #define TEMP_SMOOTHING 5
 
 /* 50kOhm @25°C + 10kOhm R1
@@ -11,13 +11,13 @@
  * B Value            3950Kelvin at 25/50 deg. C
  * Temp. Range:－40-＋150℃
  */
-#define TEMP1_LOWER 10  // °C
-#define TEMP1_UPPER 30  // °C
-#define TEMP1_RECOVER_OFFSET 3 // °C
+#define TEMPIN_LOWER 10  // °C
+#define TEMPIN_UPPER 30  // °C
+#define TEMPINRECOVER_OFFSET 3 // °C
 
-#define TEMP2_LOWER 10  // °C
-#define TEMP2_UPPER 30  // °C
-#define TEMP2_RECOVER_OFFSET 3
+#define TEMPOUT_LOWER 10  // °C
+#define TEMPOUT_UPPER 30  // °C
+#define TEMPOUTRECOVER_OFFSET 3
 
 /*
  * Pressure sensor open value: 2.50 V raw -> 1.7V after divider -> reading 2064
@@ -34,6 +34,7 @@
 #define DOOR2_GPIO_PIN GPIO_PIN_4
 #define DOOR2_GPIO_DESIRED GPIO_PIN_RESET
 
+#define ENABLE_FIREALARM false
 #define FIREALARM_GPIO_TYPE GPIOA
 #define FIREALARM_GPIO_PIN GPIO_PIN_5
 #define FIREALARM_GPIO_DESIRED GPIO_PIN_RESET
@@ -54,9 +55,10 @@
 #define SPAREIO2_GPIO_PIN GPIO_PIN_0
 #define SPAREIO2_GPIO_DESIRED GPIO_PIN_RESET
 
+#define ENABLE_EXTUNLOCK true
 #define EXTUNLOCK_GPIO_TYPE GPIOB
 #define EXTUNLOCK_GPIO_PIN GPIO_PIN_1
-#define EXTUNLOCK_GPIO_DESIRED GPIO_PIN_RESET
+#define EXTUNLOCK_GPIO_DESIRED GPIO_PIN_SET
 
 #define I2C1_SCL_GPIO_Port GPIOB
 #define I2C1_SCL_Pin GPIO_PIN_10
@@ -78,10 +80,10 @@
 #define MASTER_OUT_GPIO_Port GPIOB
 #define MASTER_OUT_Pin GPIO_PIN_12
 
-#define ADC_CHANNEL_TEMP2 0
+#define ADC_CHANNELTEMPOUT 0
 #define ADC_CHANNEL_PRESSURE 1
 #define ADC_CHANNEL_SPARE1 2
 #define ADC_CHANNEL_SPARE2 3
-#define ADC_CHANNEL_TEMP1 4
+#define ADC_CHANNELTEMPIN 4
 
 #endif

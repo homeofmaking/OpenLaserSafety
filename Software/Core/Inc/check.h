@@ -11,6 +11,8 @@ typedef struct CheckResults {
 	bool flow;
 	bool pressure;
 	bool exhaust_digital;
+	bool extunlock;
+	bool fire;
 	bool door1;
 	bool door2;
 	bool all;
@@ -22,6 +24,8 @@ typedef struct CheckValues {
 	uint16_t flow;
 	uint16_t pressure;
 	bool exhaust_digital;
+	bool extunlock;
+	bool fire;
 	bool door1;
 	bool door2;
 } CheckValues;
@@ -32,12 +36,14 @@ typedef struct Check {
 } Check;
 
 
-void serialPrintResult(CheckValues*, UART_HandleTypeDef);
+void serialPrintResult(CheckValues*);
 
 void checkFlowCount(TIM_HandleTypeDef*, uint32_t*, Check*);
 
 bool checkIOPin(GPIO_TypeDef*, uint16_t, GPIO_PinState);
 
 bool overallStatus(CheckResults*);
+
+extern UART_HandleTypeDef huart1;
 
 #endif

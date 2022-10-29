@@ -111,16 +111,16 @@ static void MX_ADC_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  char msgbuf[512]= {'\0'};
+  char msgbuf[512];
 
-  temp1Data.lowerBound = TEMP1_LOWER;
-  temp1Data.upperBound = TEMP1_UPPER;
-  temp1Data.numAboveLimit = 5;
-  temp1Data.numBelowLimit = 5;
-  temp2Data.lowerBound = TEMP1_LOWER;
-  temp2Data.upperBound = TEMP1_UPPER;
-  temp2Data.numAboveLimit = 5;
-  temp2Data.numBelowLimit = 5;
+  temp1Data.lowerBound = TEMPIN_LOWER;
+  temp1Data.upperBound = TEMPIN_UPPER;
+  temp1Data.numAboveLimit = 10;
+  temp1Data.numBelowLimit = 10;
+  temp2Data.lowerBound = TEMPOUT_LOWER;
+  temp2Data.upperBound = TEMPOUT_UPPER;
+  temp2Data.numAboveLimit = 10;
+  temp2Data.numBelowLimit = 10;
   pressureData.lowerBound = PRESSURE_LOWER;
   pressureData.upperBound = PRESSURE_UPPER;
   pressureData.numAboveLimit = 5;
@@ -152,22 +152,25 @@ int main(void)
   MX_TIM1_Init();
   MX_ADC_Init();
   /* USER CODE BEGIN 2 */
-  sprintf(msgbuf, "Starting device 1\r\n");
-  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+  sprintf(msgbuf, "Starting device\r\n");
+  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
+
+  sprintf(msgbuf, "\r\n");
+  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
 
   if (HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_DMA_BUFF, NUMBER_ADC_CHANNEL * NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL) != HAL_OK) {
     sprintf(msgbuf, "Failed to start ADC DMA.\r\n");
     Error_Handler();
   } else {
 	sprintf(msgbuf, "Started ADC DMA.\r\n");
-	HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+	HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
   }
 
   HAL_TIM_Base_Start_IT(&htim1);
   MX_I2C2_Init();
 
-  tlc59116_init(&hi2c2, &huart1);
-  tlc59116_setLEDs(hi2c2, check.results);
+  tlc59116_init(&hi2c2);
+  tlc59116_setAllLEDsOn();
 
   HAL_Delay(5000);
   /* USER CODE END 2 */
@@ -179,16 +182,12 @@ int main(void)
 	  HAL_ADC_Start(&hadc);
 	  HAL_Delay(10);
 
-      check.results.temp1 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1)), TEMP1_RECOVER_OFFSET);
-      check.values.temp1 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1));
-	  if (ENABLE_TEMP2) {
-    	  check.results.temp2 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2)), TEMP2_RECOVER_OFFSET);
-    	  check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2));
-      }
-      else {
-    	  check.results.temp2 = 0;
-    	  check.values.temp2 = 0;
-      }
+      check.results.temp1 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPIN)), TEMPINRECOVER_OFFSET);
+      check.values.temp1 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPIN));
+
+      //check.results.temp2 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT)), TEMPOUTRECOVER_OFFSET);
+    	//check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT));
+
       checkFlowCount(&htim1, &pulseCounter, &check);
 
       check.results.pressure = checkAnalogData(&pressureData, ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE), PRESSURE_RECOVER_OFFSET);
@@ -196,21 +195,24 @@ int main(void)
 
       check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
       check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
-
       check.results.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
       check.values.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
+
+      check.results.extunlock = checkIOPin(EXTUNLOCK_GPIO_TYPE, EXTUNLOCK_GPIO_PIN, EXTUNLOCK_GPIO_DESIRED);
+      check.values.extunlock = checkIOPin(EXTUNLOCK_GPIO_TYPE, EXTUNLOCK_GPIO_PIN, EXTUNLOCK_GPIO_DESIRED);
+
+      check.results.fire = checkIOPin(FIREALARM_GPIO_TYPE, FIREALARM_GPIO_PIN, FIREALARM_GPIO_DESIRED);
+      check.values.fire = checkIOPin(FIREALARM_GPIO_TYPE, FIREALARM_GPIO_PIN, FIREALARM_GPIO_DESIRED);
 
       check.results.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
       check.values.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
 
 
       check.results.all = overallStatus(&check.results);
-      sprintf(msgbuf, "ALL %d\r\n", check.values.all);
-      HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
 
       tlc59116_setLEDs(hi2c2, check.results);
 
-      serialPrintResult(&check.values, huart1);
+      serialPrintResult(&check.values);
 
       HAL_Delay(1000);
 
@@ -548,7 +550,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   char msgbuf[512]= {'\0'};
   sprintf(msgbuf, "Resetting pulseCounter\r\n");
   HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-  pulseCounter = 0;
+  pulseCounter = 0 - (2 * MIN_PULSES);
 }
 /*
 uint16_t adc_dma_average(int channel)

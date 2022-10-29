@@ -57,8 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define WATERTEMP2_Pin GPIO_PIN_0
-#define WATERTEMP2_GPIO_Port GPIOA
+#define WATERTEMPOUTPin GPIO_PIN_0
+#define WATERTEMPOUTGPIO_Port GPIOA
 #define PRESSURE_Pin GPIO_PIN_1
 #define PRESSURE_GPIO_Port GPIOA
 #define ADC_SPARE1_Pin GPIO_PIN_2
