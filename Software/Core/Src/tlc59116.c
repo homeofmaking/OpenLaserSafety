@@ -5,9 +5,9 @@
 #include "stdio.h"
 #include "string.h"
 
-void tlc59116_init(I2C_HandleTypeDef *hi2c) {
+void tlc59116_init() {
 
-	uint8_t aTxBuffer[] = {
+	uint8_t aTXBuffer[] = {
 			0x80, // inc
 			0x00,  //mod1
 			0x00,
@@ -39,16 +39,11 @@ void tlc59116_init(I2C_HandleTypeDef *hi2c) {
 			0x00, // Register 1B /  All Call I2C bus address
 			0xFF, // Register 1C /  IREF configuration
 		};
-	while (HAL_I2C_Master_Transmit(hi2c, TLC59116_ADDRESS, aTxBuffer, sizeof(aTxBuffer), 100) != HAL_OK) {
-		  char msgbuf[512]= {'\0'};
-		  sprintf(msgbuf, "Waiting for I2C transmit\r\n");
-		  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-		  HAL_Delay(1000);
-	}
+	HAL_I2C_Master_Transmit(&hi2c2, TLC59116_ADDRESS, aTXBuffer, sizeof(aTXBuffer), 100);
 }
 
 
-void tlc59116_setLEDs(I2C_HandleTypeDef hi2c, CheckResults data) {
+void tlc59116_setLEDs(CheckResults data) {
 
 	bool doors = data.door1 && data.door2;
 	uint8_t aTXBuffer[] = {
@@ -70,31 +65,41 @@ void tlc59116_setLEDs(I2C_HandleTypeDef hi2c, CheckResults data) {
 			data.all * 255,
 			!data.all* 255
 	};
-    HAL_I2C_Master_Transmit(&hi2c, TLC59116_ADDRESS, aTXBuffer, sizeof(aTXBuffer), 100);
-
+	tlc59116_send(aTXBuffer, sizeof(aTXBuffer));
 }
 
-void tlc59116_setAllLEDsOn() {
-
+void tlc59116_setAllLEDs(uint8_t value) {
 	uint8_t aTXBuffer[] = {
 			TLC59116_PWM0_AUTOINCR,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
-			255,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
+			value,
 	};
-    HAL_I2C_Master_Transmit(&hi2c2, TLC59116_ADDRESS, aTXBuffer, sizeof(aTXBuffer), 100);
-
+	tlc59116_send(aTXBuffer, sizeof(aTXBuffer));
 }
+void tlc59116_send(uint8_t aTXBuffer[], uint8_t  size) {
+	tlc59116_init();
+	if (HAL_I2C_Master_Transmit(&hi2c2, TLC59116_ADDRESS, aTXBuffer, size, 100) != HAL_OK){
+		char buffer[100];
+		HAL_I2C_Init(&hi2c2);
+		tlc59116_init();
+		sprintf(buffer, "L|Setting LEDs failed\n");
+		HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), 100);
+	};
+}
+
+
+

@@ -6,6 +6,7 @@
 
 UART_HandleTypeDef huart3;
 
+
 bool checkAnalogData(AnalogData *data, uint32_t value, uint16_t recoverOffset)
 {
 	// lower limit
@@ -85,4 +86,13 @@ float inputToCelcius(uint32_t data)
 
 	Temp_C = Temp_K - 273.15; // converting into Celsius
 	return Temp_C;
+}
+
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  char msgbuf[512]= {'\0'};
+  sprintf(msgbuf, "L|Resetting pulseCounter\r\n");
+  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+  pulseCounter = 0 - (2 * MIN_PULSES);
 }

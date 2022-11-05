@@ -164,13 +164,14 @@ int main(void)
   } else {
 	sprintf(msgbuf, "Started ADC DMA.\r\n");
 	HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
-  }
+  }      serialPrintResult(&check.values);
+
 
   HAL_TIM_Base_Start_IT(&htim1);
   MX_I2C2_Init();
 
-  tlc59116_init(&hi2c2);
-  tlc59116_setAllLEDsOn();
+  tlc59116_init();
+  tlc59116_setAllLEDs(255);
 
   HAL_Delay(5000);
   /* USER CODE END 2 */
@@ -210,7 +211,7 @@ int main(void)
 
       check.results.all = overallStatus(&check.results);
 
-      tlc59116_setLEDs(hi2c2, check.results);
+      tlc59116_setLEDs(check.results);
 
       serialPrintResult(&check.values);
 
@@ -545,13 +546,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  char msgbuf[512]= {'\0'};
-  sprintf(msgbuf, "Resetting pulseCounter\r\n");
-  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-  pulseCounter = 0 - (2 * MIN_PULSES);
-}
+
 /*
 uint16_t adc_dma_average(int channel)
 {

@@ -18,4 +18,5 @@ typedef struct AnalogData
 bool checkAnalogData(AnalogData*, uint32_t, uint16_t);
 float inputToCelcius(uint32_t);
 extern UART_HandleTypeDef huart1;
+extern uint32_t pulseCounter;
 
