@@ -3,6 +3,7 @@
 #include "check.h"
 #include "string.h"
 #include "stdio.h"
+#include "tlc59116.h"
 
 void checkFlowCount(TIM_HandleTypeDef *htim, uint32_t *pulseCounter, Check *check)
 {
@@ -21,6 +22,40 @@ void checkFlowCount(TIM_HandleTypeDef *htim, uint32_t *pulseCounter, Check *chec
   {
     check->results.flow = false;
   }
+}
+
+void tim_panic() {
+	while (1) {
+		// Ensure master output is off
+		HAL_GPIO_WritePin(MASTER_OUT_GPIO_Port, MASTER_OUT_Pin, GPIO_PIN_RESET);
+		// Log error
+		char buffer[100];
+		sprintf(buffer, "L|Panic could not initialize Timer\n");
+
+		// Set LEDs to a destinctive pattern
+		HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), 100);
+			uint8_t aTXBuffer[] = {
+			TLC59116_PWM0_AUTOINCR,
+			0,
+			0,
+			0,
+			0,
+			255,
+			255,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+		};
+		tlc59116_send(aTXBuffer, sizeof(aTXBuffer));
+		HAL_Delay(1000);
+	}
 }
 
 bool checkIOPin(GPIO_TypeDef *type, uint16_t pin, GPIO_PinState desired)
@@ -69,7 +104,7 @@ bool overallStatus(CheckResults *data)
         data->flow &&
         data->pressure &&
         data->temp1;
-  if (ENABLETEMPOUT)
+  if (ENABLE_TEMPOUT)
   {
     all = all && data->temp2;
   }

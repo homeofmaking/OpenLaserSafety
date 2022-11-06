@@ -44,6 +44,9 @@ bool checkIOPin(GPIO_TypeDef*, uint16_t, GPIO_PinState);
 
 bool overallStatus(CheckResults*);
 
+void tim_panic(void);
+
+
 extern UART_HandleTypeDef huart1;
 
 #endif

@@ -163,13 +163,19 @@ int main(void)
 
   if (HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_DMA_BUFF, NUMBER_ADC_CHANNEL * NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL) != HAL_OK) {
     sprintf(msgbuf, "L|Failed to start ADC DMA.\r\n");
-    Error_Handler();
+    adc_panic();
   } else {
-	sprintf(msgbuf, "L|Started ADC DMA.\r\n");
-	HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
+	  sprintf(msgbuf, "L|Started ADC DMA.\r\n");
+	  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
   }
 
-  HAL_TIM_Base_Start_IT(&htim1);
+  if (HAL_TIM_Base_Start_IT(&htim1) != HAL_OK) {
+    sprintf(msgbuf, "L|Failed to start timer.\r\n");
+    tim_panic();
+  } else {
+    sprintf(msgbuf, "L|Started timer.\r\n");
+    HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
+  }
   MX_I2C2_Init();
 
   tlc59116_init();
@@ -187,8 +193,10 @@ int main(void)
     check.results.temp1 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPIN)), TEMPINRECOVER_OFFSET);
     check.values.temp1 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPIN));
 
-    check.results.temp2 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT)), TEMPOUTRECOVER_OFFSET);
-    check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT));
+    if (ENABLE_TEMPOUT) {
+      check.results.temp2 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT)), TEMPOUTRECOVER_OFFSET);
+      check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT));
+    }
 
     checkFlowCount(&htim1, &pulseCounter, &check);
 

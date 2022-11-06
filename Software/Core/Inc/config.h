@@ -2,7 +2,7 @@
 #define __CONFIG_H__
 #include "stdbool.h"
 
-#define ENABLETEMPOUT false
+#define ENABLE_TEMPOUT false
 #define TEMP_SMOOTHING 5
 
 /* 50kOhm @25°C + 10kOhm R1

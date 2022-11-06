@@ -44,14 +44,20 @@ void tlc59116_init() {
 
 
 void tlc59116_setLEDs(CheckResults data) {
-
+	bool temp;
 	bool doors = data.door1 && data.door2;
+	if (ENABLE_TEMPOUT) {
+		temp = data.temp1 && data.temp2;
+	}
+	else {
+		temp = data.temp1;
+	}
 	uint8_t aTXBuffer[] = {
 			TLC59116_PWM0_AUTOINCR,
 			doors * 255,
 			!doors * 255,
-			data.temp1 * 255,
-			!data.temp1 * 255,
+			temp * 255,
+			!temp * 255,
 			data.flow * 255,
 			!data.flow * 255,
 			data.extunlock * 255,
