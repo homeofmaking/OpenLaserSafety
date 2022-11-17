@@ -80,8 +80,8 @@ uint32_t adcBuf[3];
 uint32_t conversionResult[NUMBER_ADC_CHANNEL];
 uint32_t pulseCounter = 0;
 
-AnalogData waterInletData;
-AnalogData waterOutletData;
+AnalogData temp1Data;
+AnalogData temp2Data;
 AnalogData pressureData;
 Check check;
 
@@ -111,13 +111,20 @@ static void MX_ADC_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  char msgbuf[512]= {'\0'};
-  waterInletData.lowerBound = TEMP1_LOWER;
-  waterInletData.upperBound = TEMP1_UPPER;
-  waterOutletData.lowerBound = TEMP1_LOWER;
-  waterOutletData.upperBound = TEMP1_UPPER;
+  char msgbuf[512];
+
+  temp1Data.lowerBound = TEMPIN_LOWER;
+  temp1Data.upperBound = TEMPIN_UPPER;
+  temp1Data.numAboveLimit = 10;
+  temp1Data.numBelowLimit = 10;
+  temp2Data.lowerBound = TEMPOUT_LOWER;
+  temp2Data.upperBound = TEMPOUT_UPPER;
+  temp2Data.numAboveLimit = 10;
+  temp2Data.numBelowLimit = 10;
   pressureData.lowerBound = PRESSURE_LOWER;
   pressureData.upperBound = PRESSURE_UPPER;
+  pressureData.numAboveLimit = 5;
+  pressureData.numBelowLimit = 5;
 
   /* USER CODE END 1 */
 
@@ -145,23 +152,36 @@ int main(void)
   MX_TIM1_Init();
   MX_ADC_Init();
   /* USER CODE BEGIN 2 */
-  sprintf(msgbuf, "Starting device 1\r\n");
-  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+  // Wait for ESP to wake up
+  HAL_Delay(8000);
+
+  sprintf(msgbuf, "L|Starting device\r\n");
+  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
+
+  sprintf(msgbuf, "\r\n");
+  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
 
   if (HAL_ADC_Start_DMA(&hadc, (uint32_t *)ADC_DMA_BUFF, NUMBER_ADC_CHANNEL * NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL) != HAL_OK) {
-    sprintf(msgbuf, "Failed to start ADC DMA.\r\n");
-    Error_Handler();
+    sprintf(msgbuf, "L|Failed to start ADC DMA.\r\n");
+    adc_panic();
   } else {
-	sprintf(msgbuf, "Started ADC DMA.\r\n");
-	HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
+	  sprintf(msgbuf, "L|Started ADC DMA.\r\n");
+	  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
   }
 
-  HAL_TIM_Base_Start_IT(&htim1);
+  if (HAL_TIM_Base_Start_IT(&htim1) != HAL_OK) {
+    sprintf(msgbuf, "L|Failed to start timer.\r\n");
+    tim_panic();
+  } else {
+    sprintf(msgbuf, "L|Started timer.\r\n");
+    HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 50);
+  }
   MX_I2C2_Init();
 
-  tlc59116_init(&hi2c2, &huart1);
+  tlc59116_init();
+  tlc59116_setAllLEDs(255);
 
-  HAL_Delay(200);
+  HAL_Delay(5000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -169,37 +189,42 @@ int main(void)
   while (1)
   {
 	  HAL_ADC_Start(&hadc);
-	  HAL_Delay(10);
 
-      check.results.temp1 = checkAnalogData(&waterInletData, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1)));
-      check.values.temp1 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP1));
-	  if (ENABLE_TEMP2) {
-    	  check.results.temp2 = checkAnalogData(&waterInletData, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2)));
-    	  check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNEL_TEMP2));
-      }
-      else {
-    	  check.results.temp2 = 0;
-    	  check.values.temp2 = 0;
-      }
-      checkFlowCount(&htim1, &pulseCounter, &check);
+    check.results.temp1 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPIN)), TEMPINRECOVER_OFFSET);
+    check.values.temp1 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPIN));
 
-      check.results.pressure = checkAnalogData(&pressureData, ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE));
-      check.values.pressure = ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE);
+    if (ENABLE_TEMPOUT) {
+      check.results.temp2 = checkAnalogData(&temp1Data, inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT)), TEMPOUTRECOVER_OFFSET);
+      check.values.temp2 = inputToCelcius(ADC_DMA_AVERAGE(ADC_CHANNELTEMPOUT));
+    }
 
-      check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
-      check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
+    checkFlowCount(&htim1, &pulseCounter, &check);
 
-      check.results.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
-      check.values.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
+    check.results.pressure = checkAnalogData(&pressureData, ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE), PRESSURE_RECOVER_OFFSET);
+    check.values.pressure = ADC_DMA_AVERAGE(ADC_CHANNEL_PRESSURE);
 
-      check.results.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
-      check.values.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
+    check.results.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
+    check.values.door1 = checkIOPin(DOOR1_GPIO_TYPE, DOOR1_GPIO_PIN, DOOR1_GPIO_DESIRED);
+    check.results.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
+    check.values.door2 = checkIOPin(DOOR2_GPIO_TYPE, DOOR2_GPIO_PIN, DOOR2_GPIO_DESIRED);
 
-      serialPrintResult(&check.values, huart1);
+    check.results.extunlock = checkIOPin(EXTUNLOCK_GPIO_TYPE, EXTUNLOCK_GPIO_PIN, EXTUNLOCK_GPIO_DESIRED);
+    check.values.extunlock = checkIOPin(EXTUNLOCK_GPIO_TYPE, EXTUNLOCK_GPIO_PIN, EXTUNLOCK_GPIO_DESIRED);
 
-      tlc59116_setLEDs(hi2c2, check.results);
-      overallStatus(&check);
-      HAL_Delay(1000);
+    check.results.fire = checkIOPin(FIREALARM_GPIO_TYPE, FIREALARM_GPIO_PIN, FIREALARM_GPIO_DESIRED);
+    check.values.fire = checkIOPin(FIREALARM_GPIO_TYPE, FIREALARM_GPIO_PIN, FIREALARM_GPIO_DESIRED);
+
+    check.results.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
+    check.values.exhaust_digital = checkIOPin(EXHAUST_DIGITAL_GPIO_TYPE, EXHAUST_DIGITAL_GPIO_PIN, EXHAUST_DIGITAL_GPIO_DESIRED);
+
+
+    check.results.all = overallStatus(&check.results);
+
+    tlc59116_setLEDs(check.results);
+
+    serialPrintResult(&check.values);
+
+    HAL_Delay(500);
 
     /* USER CODE END WHILE */
 
@@ -306,6 +331,22 @@ static void MX_ADC_Init(void)
   /** Configure for the selected ADC regular channel to be converted.
   */
   sConfig.Channel = ADC_CHANNEL_1;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
+  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel to be converted.
+  */
+  sConfig.Channel = ADC_CHANNEL_3;
   if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -489,6 +530,20 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MASTER_DO_GPIO_Port, MASTER_DO_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pins : DOOR2_Pin FIREALARM_Pin SPARE_IO1_Pin EXHAUST_Pin
+                           DOOR1_Pin */
+  GPIO_InitStruct.Pin = DOOR2_Pin|FIREALARM_Pin|SPARE_IO1_Pin|EXHAUST_Pin
+                          |DOOR1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SPARE_IO2_Pin EXT_UNLOCK_Pin SPARE_IO3_Pin SPARE_IO4_Pin */
+  GPIO_InitStruct.Pin = SPARE_IO2_Pin|EXT_UNLOCK_Pin|SPARE_IO3_Pin|SPARE_IO4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : MASTER_DO_Pin */
   GPIO_InitStruct.Pin = MASTER_DO_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -500,13 +555,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  char msgbuf[512]= {'\0'};
-  sprintf(msgbuf, "Resetting pulseCounter\r\n");
-  HAL_UART_Transmit(&huart1, (uint8_t*)msgbuf, strlen(msgbuf), 100);
-  pulseCounter = 0;
-}
+
 /*
 uint16_t adc_dma_average(int channel)
 {

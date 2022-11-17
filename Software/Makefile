@@ -10,4 +10,4 @@ clean:
 flash: all
 	rm Debug/OpenLaserSafety.bin
 	arm-none-eabi-objcopy -O binary Debug/OpenLaserSafety.elf Debug/OpenLaserSafety.bin
-	st-flash write  Debug/OpenLaserSafety.bin 0x08000000  
+	st-flash --reset write Debug/OpenLaserSafety.bin 0x08000000
