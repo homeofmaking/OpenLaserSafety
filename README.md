@@ -27,4 +27,6 @@ OLS was initially designed to replace the hand soldered first version of a laser
 - Low-cost BOM with all parts available on [jlcpcbs assembly service](https://jlcpcb.com/parts)
 
 ### Supporters & Sponsors
-![jlcpcb](https://user-images.githubusercontent.com/1123412/202772348-b4337b58-544f-409a-94d6-a1fce9f20a3f.png)
+Version 1.0 of the PCB has been sponsored by jlcpcb. 
+
+![jlcpcb-300](https://user-images.githubusercontent.com/1123412/202773101-4de48844-dd10-46d2-b594-e24b453b59f9.png)
