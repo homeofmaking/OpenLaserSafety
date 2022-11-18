@@ -26,6 +26,10 @@ OLS was initially designed to replace the hand soldered first version of a laser
   - Up to 40V input voltage
 - Low-cost BOM with all parts available on [jlcpcbs assembly service](https://jlcpcb.com/parts)
 
+### Pictures
+This is what version 1.1 looks like.
+![easyeda_HQNySO02Kl](https://user-images.githubusercontent.com/1123412/202814483-bc921fe5-7cd6-4614-846d-bd7e5397b175.png)
+
 ### Supporters & Sponsors
 Version 1.0 of the PCB has been sponsored by jlcpcb. 
 
