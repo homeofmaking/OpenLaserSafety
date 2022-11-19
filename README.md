@@ -34,3 +34,12 @@ This is what version 1.1 looks like.
 Version 1.0 of the PCB has been sponsored by jlcpcb. 
 
 ![jlcpcb-300](https://user-images.githubusercontent.com/1123412/202773101-4de48844-dd10-46d2-b594-e24b453b59f9.png)
+
+### License
+The hardware in this repository is licensed under the [Solderpad Hardware License version 2.1](LICENSE). Software is licensed under the [Apache License 2](LICENSE).
+[These licenses are permissive and qualify for the Open Source Hardware definition.](https://www.oshwa.org/definition/) Please refrain from using the OpenLaserSafety brand, including logo and name.
+
+### Credits & Attribution
+- Main contributors to hardware design [German Hoeffner](https://github.com/ghoeffner) & [Serge 'q3k' Bazanski](https://github.com/q3k)
+- Main contributors to software [Christoph 'Meier' Maser](https://github.com/TheMeier)
+- [Original idea by MunichMakerLab LaserSafety contributors.](https://github.com/munichmakerlab/LaserSafety/graphs/contributors)
