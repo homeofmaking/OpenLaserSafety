@@ -18,6 +18,8 @@ OLS was initially designed to replace the hand soldered first version of a laser
 - Outputs
   - Master output via dry relays
   - i2c TLC59116 LED-driver support for status LEDs
+- Software allows easy configuration of all inputs and thresholds
+- Inputs are using cheap but robust KF301 terminals
 - On board Wemos D1 mini for user-code
   - Master output and uart from safety uC
   - Runs user software e.g. to log status remotely
