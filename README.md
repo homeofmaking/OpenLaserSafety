@@ -68,7 +68,7 @@ The hardware in this repository is licensed under the [Solderpad Hardware Licens
 |  PA10  |            | TX             | Uart  `huart1`                |          |                            |
 |  PA11  | H18        | VENT DI        | EXHAUST_DIGITAL_GPIO_PIN/TYPE |          | Inverter                   |
 |  PA12  | H16        | LID1 DI        | DOOR2_GPIO_PIN/TYPE           |   `D2`   | Inverter    #FIXME swapped |
-|  PB0   | U7         | SPARE IO       | SPAREIO1_GPIO_PIN/TYPE        |          |
+|  PB0   | U7         | SPARE IO       | SPAREIO1_GPIO_PIN/TYPE        |          |                            |
 |  PB1   | H7         | EXT UNL.       | EXTUNLOCK_GPIO_PIN/TYPE       |  `UNL`   |                            |
 |  PB12  | H14, H15   | MASTER         | MASTER_OUT_Pin/Port           |          | Dry Relays                 |
 |  PB12  | -          | -              |                               |    -     | D5 Pin on Wemos D1         |
