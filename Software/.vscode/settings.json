@@ -1,0 +1,11 @@
+{
+  "makefile.extensionOutputFolder": "./.vscode",
+  "C_Cpp.default.includePath": [
+    "./Core/Inc",
+    "./Drivers/STM32F0xx_HAL_Driver/Inc/",
+    "./Drivers/CMSIS/Device/ST/STM32F0xx/Include/",
+    "./Core/Inc",
+    "./Drivers/CMSIS/Include"
+  ],
+  "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+}

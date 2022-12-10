@@ -1,0 +1,6 @@
+Debug/
+*.launch
+**/.vscode/*.log
+Software/Release/OpenLaserSafety.elf
+Software/Release/OpenLaserSafety.map
+Software/Release/OpenLaserSafety.map

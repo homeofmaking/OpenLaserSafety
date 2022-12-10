@@ -1,0 +1,89 @@
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+#include "stdbool.h"
+
+#define ENABLE_TEMPOUT false
+#define TEMP_SMOOTHING 5
+
+/* 50kOhm @25°C + 10kOhm R1
+ * TEMPERATURE VS RESISTANCE TABLE
+ * Resistance         50k Ohms at 25deg. C
+ * B Value            3950Kelvin at 25/50 deg. C
+ * Temp. Range:－40-＋150℃
+ */
+#define TEMPIN_LOWER 10  // °C
+#define TEMPIN_UPPER 30  // °C
+#define TEMPINRECOVER_OFFSET 3 // °C
+
+#define TEMPOUT_LOWER 10  // °C
+#define TEMPOUT_UPPER 30  // °C
+#define TEMPOUTRECOVER_OFFSET 3
+
+/*
+ * Pressure sensor open value: 2.50 V raw -> 1.7V after divider -> reading 2064
+ * Upper limit 4.7 V:  raw -> 3.2 V after divider -> reading 4001
+ * Lower limit 4.7 V:  raw -> 2.04 V after divider -> reading 4001
+ */
+#define PRESSURE_UPPER 4001 // 4.99 V
+#define PRESSURE_LOWER 2550  // 3.00 V
+#define PRESSURE_RECOVER_OFFSET 100  // ~ 0.08 V
+
+#define MIN_PULSES 5 // minimum number of pulses from flow sensor required per loop
+
+#define DOOR2_GPIO_TYPE GPIOA
+#define DOOR2_GPIO_PIN GPIO_PIN_4
+#define DOOR2_GPIO_DESIRED GPIO_PIN_RESET
+
+#define ENABLE_FIREALARM false
+#define FIREALARM_GPIO_TYPE GPIOA
+#define FIREALARM_GPIO_PIN GPIO_PIN_5
+#define FIREALARM_GPIO_DESIRED GPIO_PIN_RESET
+
+#define SPAREIO1_GPIO_TYPE GPIOA
+#define SPAREIO1_GPIO_PIN GPIO_PIN_7
+#define SPAREIO1_GPIO_DESIRED GPIO_PIN_RESET
+
+#define EXHAUST_DIGITAL_GPIO_TYPE GPIOA
+#define EXHAUST_DIGITAL_GPIO_PIN GPIO_PIN_11
+#define EXHAUST_DIGITAL_GPIO_DESIRED GPIO_PIN_RESET
+
+#define DOOR1_GPIO_TYPE GPIOA
+#define DOOR1_GPIO_PIN GPIO_PIN_12
+#define DOOR1_GPIO_DESIRED GPIO_PIN_RESET
+
+#define SPAREIO2_GPIO_TYPE GPIOB
+#define SPAREIO2_GPIO_PIN GPIO_PIN_0
+#define SPAREIO2_GPIO_DESIRED GPIO_PIN_RESET
+
+#define ENABLE_EXTUNLOCK true
+#define EXTUNLOCK_GPIO_TYPE GPIOB
+#define EXTUNLOCK_GPIO_PIN GPIO_PIN_1
+#define EXTUNLOCK_GPIO_DESIRED GPIO_PIN_SET
+
+#define I2C1_SCL_GPIO_Port GPIOB
+#define I2C1_SCL_Pin GPIO_PIN_10
+
+#define I2C1_SDA_GPIO_Port GPIOB
+#define I2C1_SDA_Pin GPIO_PIN_11
+
+#define SPAREIO3_GPIO_TYPE GPIOB
+#define SPAREIO3_GPIO_PIN GPIO_PIN_13
+#define SPAREIO3_GPIO_DESIRED GPIO_PIN_RESET
+
+#define SPAREIO4_GPIO_TYPE GPIOB
+#define SPAREIO4_GPIO_PIN GPIO_PIN_14
+#define SPAREIO4_GPIO_DESIRED GPIO_PIN_RESET
+
+#define NUMBER_ADC_CHANNEL 5
+#define NUMBER_ADC_CHANNEL_AVERAGE_PER_CHANNEL 8
+
+#define MASTER_OUT_GPIO_Port GPIOB
+#define MASTER_OUT_Pin GPIO_PIN_12
+
+#define ADC_CHANNELTEMPOUT 0
+#define ADC_CHANNEL_PRESSURE 1
+#define ADC_CHANNEL_SPARE1 2
+#define ADC_CHANNEL_SPARE2 3
+#define ADC_CHANNELTEMPIN 4
+
+#endif
